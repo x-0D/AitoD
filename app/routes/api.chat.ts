@@ -1,7 +1,8 @@
 import { type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { MAX_RESPONSE_SEGMENTS, MAX_TOKENS } from '~/lib/.server/llm/constants';
-import { CONTINUE_PROMPT } from '~/lib/.server/llm/prompts';
-import { streamText, type Messages, type StreamingOptions } from '~/lib/.server/llm/stream-text';
+import { getCurrentLLMType, selectLLM } from '~/lib/.server/llm/llm-selector';
+import { streamText } from '~/lib/.server/llm/stream-text';
+import type { Messages, StreamingOptions } from '~/lib/.server/llm/llm-interface';
 import SwitchableStream from '~/lib/.server/llm/switchable-stream';
 
 export async function action(args: ActionFunctionArgs) {
@@ -14,6 +15,8 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
   const stream = new SwitchableStream();
 
   try {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    const continue_prompt = selectLLM(getCurrentLLMType()).getPrompts().getContinuePrompt();
     const options: StreamingOptions = {
       toolChoice: 'none',
       onFinish: async ({ text: content, finishReason }) => {
@@ -30,17 +33,17 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
         console.log(`Reached max token limit (${MAX_TOKENS}): Continuing message (${switchesLeft} switches left)`);
 
         messages.push({ role: 'assistant', content });
-        messages.push({ role: 'user', content: CONTINUE_PROMPT });
+        messages.push({ role: 'user', content: continue_prompt });
 
         const result = await streamText(messages, context.cloudflare.env, options);
 
-        return stream.switchSource(result.toAIStream());
+        return stream.switchSource(result.toDataStream({ result }));
       },
     };
 
     const result = await streamText(messages, context.cloudflare.env, options);
 
-    stream.switchSource(result.toAIStream());
+    stream.switchSource(result.toDataStream({ result }));
 
     return new Response(stream.readable, {
       status: 200,

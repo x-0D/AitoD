@@ -9,12 +9,12 @@
   "scripts": {
     "deploy": "npm run build && wrangler pages deploy",
     "build": "remix vite:build",
-    "dev": "remix vite:dev",
+    "dev": "remix vite:dev --host",
     "test": "vitest --run",
     "test:watch": "vitest",
     "lint": "eslint --cache --cache-location ./node_modules/.cache/eslint .",
     "lint:fix": "npm run lint -- --fix",
-    "start": "bindings=$(./bindings.sh) && wrangler pages dev ./build/client $bindings",
+    "start": "bindings=$(./bindings.sh) && wrangler pages dev --ip 0.0.0.0 --local-protocol https ./build/client $bindings",
     "typecheck": "tsc",
     "typegen": "wrangler types",
     "preview": "pnpm run build && pnpm run start"
@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^0.0.39",
+    "@ai-sdk/openai": "^0.0.66",
     "@codemirror/autocomplete": "^6.17.0",
     "@codemirror/commands": "^6.6.0",
     "@codemirror/lang-cpp": "^6.0.2",
@@ -54,7 +55,7 @@
     "@xterm/addon-fit": "^0.10.0",
     "@xterm/addon-web-links": "^0.11.0",
     "@xterm/xterm": "^5.5.0",
-    "ai": "^3.3.4",
+    "ai": "^3.4.9",
     "date-fns": "^3.6.0",
     "diff": "^5.2.0",
     "framer-motion": "^11.2.12",
