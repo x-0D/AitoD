@@ -11,6 +11,6 @@ RUN corepack enable pnpm && pnpm install
 COPY . .
 
 # Expose the port the app runs on
-EXPOSE 5173
+EXPOSE 5173 8788
 
 CMD [ "sh", "-c" "pnpm run build && pnpm run start" ]
