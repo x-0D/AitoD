@@ -1,7 +1,6 @@
-/* eslint-disable multiline-comment-style */
 import { type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { StreamingTextResponse, parseStreamPart } from 'ai';
-import { generateText } from '~/lib/.server/llm/stream-text';
+import { streamText } from '~/lib/.server/llm/stream-text';
 import { stripIndents } from '~/utils/stripIndent';
 
 const encoder = new TextEncoder();
@@ -15,7 +14,7 @@ async function enhancerAction({ context, request }: ActionFunctionArgs) {
   const { message } = await request.json<{ message: string }>();
 
   try {
-    const result = await generateText(
+    const result = await streamText(
       [
         {
           role: 'user',
@@ -33,32 +32,27 @@ async function enhancerAction({ context, request }: ActionFunctionArgs) {
       context.cloudflare.env,
     );
 
-    // const transformStream = new TransformStream({
-    //   transform(chunk, controller) {
-    //     const decodedChunk = decoder.decode(chunk);
-    //     const parts = decodedChunk.split('\n').filter((line) => line !== '');
+    const transformStream = new TransformStream({
+      transform(chunk, controller) {
+        const decodedChunk = decoder.decode(chunk);
+        const parts = decodedChunk.split('\n').filter((line) => line !== '');
 
-    //     for (const part of parts) {
-    //       const parsed = parseStreamPart(part);
-    //       console.log(parsed);
+        for (const part of parts) {
+          const parsed = parseStreamPart(part);
+          console.log(parsed);
 
-    //       if (parsed.type === 'text') {
-    //         controller.enqueue(encoder.encode(parsed.value));
-    //       }
+          if (parsed.type === 'text') {
+            controller.enqueue(encoder.encode(parsed.value));
+          }
 
-    //       // non-text chunks are ignored
-    //     }
-    //   },
-    // });
-
-    const transformedStream = result; // .toAIStream().pipeThrough(transformStream);
-
-    return new Response(transformedStream.text, {
-      status: 200,
-      headers: {
-        contentType: 'text/plain; charset=utf-8',
+          // non-text chunks are ignored
+        }
       },
     });
+
+    const transformedStream = result.toAIStream().pipeThrough(transformStream);
+
+    return new StreamingTextResponse(transformedStream);
   } catch (error) {
     console.log(error);
 

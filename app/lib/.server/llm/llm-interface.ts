@@ -12,6 +12,5 @@ export type StreamingOptions = Omit<Parameters<typeof _streamText>[0], 'model'>;
 
 export interface LLM {
   streamText(messages: Messages, env: Env, options?: StreamingOptions): Promise<any>;
-  generateText(messages: Messages, env: Env, options?: StreamingOptions): Promise<any>;
   getPrompts(): Prompts;
 }

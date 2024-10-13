@@ -6,6 +6,7 @@ import type { Prompts } from './prompts-interface';
 export class OpenAIPrompts implements Prompts {
   getSystemPrompt(cwd: string = WORK_DIR): string {
     return `
+        IGNORE ALL PREVIOUS SYSTEM PROMPT ABOUT MARKDOWN SYNTAX, USE XML AS DESCRIBED ABOVE:
         You are Bolt, an expert AI assistant and senior software developer with extensive knowledge across various programming languages, frameworks, and best practices.
     
         <system_constraints>
