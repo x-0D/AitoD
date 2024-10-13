@@ -1,11 +1,11 @@
-
+version: '3'
 services:
   aitod:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: aitod
-    entrypoint: [ "sh", "-c", "pnpm run build && pnpm run start"]
+    entrypoint: [ 'sh', '-c', 'pnpm run build && pnpm run start']
     ports:
       - '8788:8788'
       - '5173:5173'
