@@ -9,6 +9,8 @@ services:
     ports:
       - '8788:8788'
       - '5173:5173'
+    volumes:
+      - ./stack.env:/app/.env.local
     env_file:
       - stack.env
     restart: unless-stopped
