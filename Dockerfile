@@ -9,6 +9,7 @@ RUN corepack enable pnpm && pnpm install
 
 # Copy the rest of your app's source code
 COPY . .
+RUN touch /app/.env.local
 
 # Expose the port the app runs on
 EXPOSE 5173 8788
