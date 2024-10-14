@@ -38,11 +38,12 @@ export class OpenAILLM implements LLM {
 
     const model = openai(model_name);
 
+    const o1sysmessage: Message = {
+      role: 'user',
+      content: this.getPrompts().getSystemPrompt(),
+    };
+
     if (model_name === 'o1-mini' || model_name === 'o1-preview') {
-      const o1sysmessage: Message = {
-        role: 'user',
-        content: this.getPrompts().getSystemPrompt(),
-      };
       return _streamText({
         model,
         messages: [o1sysmessage, ...convertToCoreMessages(messages)],
@@ -52,7 +53,7 @@ export class OpenAILLM implements LLM {
       return _streamText({
         model,
         system: this.getPrompts().getSystemPrompt(),
-        messages: convertToCoreMessages(messages),
+        messages: [o1sysmessage, ...convertToCoreMessages(messages)],
         maxTokens: MAX_TOKENS,
         ...options,
       });

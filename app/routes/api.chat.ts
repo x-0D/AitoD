@@ -9,6 +9,19 @@ export async function action(args: ActionFunctionArgs) {
   return chatAction(args);
 }
 
+function checkForUnmatchedTags(text: string) {
+  // regular expression to find <boltAction> and </boltAction>
+  const openingTag = /<boltAction/g;
+  const closingTag = /<\/boltAction>/g;
+
+  // count the number of opening and closing tags
+  const openingCount = (text.match(openingTag) || []).length;
+  const closingCount = (text.match(closingTag) || []).length;
+
+  // check if the counts match
+  return openingCount == closingCount;
+}
+
 async function chatAction({ context, request }: ActionFunctionArgs) {
   const { messages } = await request.json<{ messages: Messages }>();
 
@@ -20,9 +33,15 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
     const options: StreamingOptions = {
       toolChoice: 'none',
       onFinish: async ({ text: content, finishReason }) => {
-        if (finishReason !== 'length') {
+        console.log('finishReason:', finishReason);
+
+        // if (finishReason !== 'length' || checkForUnmatchedTags(content)) {
+        if (checkForUnmatchedTags(content)) {
+          console.log('checkForUnmatchedTags: true; closing stream');
           return stream.close();
         }
+
+        console.log('checkForUnmatchedTags: false');
 
         if (stream.switches >= MAX_RESPONSE_SEGMENTS) {
           throw Error('Cannot continue message: Maximum segments reached');
